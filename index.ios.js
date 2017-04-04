@@ -17,7 +17,8 @@ import {
   View,
   Navigator,
   StatusBar,
-  RefreshControl
+  RefreshControl,
+  TouchableHighlight
 } from 'react-native';
 
 import request from './src/request';
@@ -30,6 +31,7 @@ export default class ucon extends Component {
     });
     this.state = {
       dataSource: ds.cloneWithRows([]),
+      currentThing: null,
       refreshing: false,
     };
     this._onRefresh();
@@ -49,10 +51,9 @@ export default class ucon extends Component {
   render() {
     const routes = [
       {
-        title: 'things',
-        index: 1,
-        statusBarHidden: false,
-        render: (route) => <ListView
+        title: 'thingsIndex',
+        index: 0,
+        render: (route, navigator) => <ListView
           contentContainerStyle={styles.list}
           refreshControl={
             <RefreshControl
@@ -61,7 +62,14 @@ export default class ucon extends Component {
             />
           }
           dataSource={this.state.dataSource}
-          renderRow={(rowData) => <Text style={styles.item}>{rowData}</Text>}
+          renderRow={(rowData) => 
+            <TouchableHighlight onPress={() => {
+              this.setState({ currentThing: rowData })
+              navigator.push(routes[1]);
+            }}>
+            <Text style={styles.item}>{rowData}</Text>
+          </TouchableHighlight>
+          }
         >
           <StatusBar
             backgroundColor="blue"
@@ -69,13 +77,24 @@ export default class ucon extends Component {
             hidden={route.statusBarHidden}
           />
         </ListView>
+      },{
+        title: 'thingInterface',
+        index: 1,
+        render: (route, navigator) => <View>
+          <Text> you are here </Text>
+          <TouchableHighlight onPress={() => navigator.pop() }>
+            <Text style={styles.item}>{this.state.currentThing}</Text>
+          </TouchableHighlight>
+        </View>
       }
     ];
     return (
       <Navigator
         initialRoute={routes[0]}
         initialRouteStack={routes}
-        renderScene={(route, navigator) => route.render(route)}
+        renderScene={(route, navigator) => route.render(route, navigator)}
+        configureScene={(route, routeStack) => Navigator.SceneConfigs.VerticalUpSwipeJump}
+
         style={styles.nav}
       />
     );
